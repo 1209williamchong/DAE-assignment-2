@@ -124,8 +124,8 @@ function adjustAmount(totalAmount: number, items: PersonItem[]): void {
   const totalCalculated = items.reduce((sum, item) => sum + item.amount, 0);
   const difference = totalAmount - totalCalculated;
 
-  if (difference !== 0) {
+  if (Math.abs(difference) > 0.05) {
     const adjustment = Math.sign(difference) * 0.1;
-    items[0].amount += adjustment; // // adjust the personal amount to match the total amount
+    items[0].amount += adjustment; // adjust the personal amount to match the total amount
   }
 }
