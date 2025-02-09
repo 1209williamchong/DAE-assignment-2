@@ -115,16 +115,20 @@ function calculatePersonAmount(input: {
   });
 
   const tip = amount * (input.tipPercentage / 100);
-  return Math.round((amount + tip) * 10) / 10; // 確保四捨五入到最近的0.1
+  return Math.round((amount + tip + Number.EPSILON) * 10) / 10; // 確保四捨五入到最近的0.1
 }
 
 function adjustAmount(totalAmount: number, items: PersonItem[]): void {
   const totalCalculated = items.reduce((sum, item) => sum + item.amount, 0);
-  const difference = Math.round((totalAmount - totalCalculated) * 10) / 10;
+  const difference = Math.round((totalAmount - totalCalculated + Number.EPSILON) * 10) / 10;
+
+  console.log("Total Calculated:", totalCalculated);
+  console.log("Difference:", difference);
 
   if (difference !== 0) {
     const adjustment = Math.sign(difference) * 0.1;
-    items[0].amount = Math.round((items[0].amount + adjustment) * 10) / 10; // 調整第一個人的金額
+    items[0].amount = Math.round((items[0].amount + adjustment + Number.EPSILON) * 10) / 10; // 調整第一個人的金額
   }
 }
+
 
