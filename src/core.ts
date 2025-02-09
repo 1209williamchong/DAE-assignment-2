@@ -99,10 +99,10 @@ function calculateItems(items: BillItem[], tipPercentage: number): PersonItem[] 
 }
 
 function calculatePersonAmount(input: {
-  items: BillItem[]
-  tipPercentage: number
-  name: string
-  persons: number
+  items: BillItem[];
+  tipPercentage: number;
+  name: string;
+  persons: number;
 }): number {
   let amount = 0;
 
@@ -114,8 +114,8 @@ function calculatePersonAmount(input: {
     }
   });
 
-  const tip = amount * (input.tipPercentage / 100);
-  return Math.round((amount + tip + Number.EPSILON) * 10) / 10; // 確保四捨五入到最近的0.1
+  const tip = (amount / input.persons) * (input.tipPercentage / 100);
+  return parseFloat((amount + tip).toFixed(1)); // 確保返回值為固定小數位
 }
 
 
