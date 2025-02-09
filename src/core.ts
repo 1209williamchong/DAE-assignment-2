@@ -62,6 +62,7 @@ export function formatDate(date: string): string {
 }
 
 function calculateSubTotal(items: BillItem[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
   // sum up all the price of the items
 }
 
