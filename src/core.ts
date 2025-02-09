@@ -113,10 +113,11 @@ function calculatePersonAmount(input: {
       amount += item.price;
     }
   });
-  
+
   const tip = amount * (input.tipPercentage / 100);
-  return Math.round((amount + tip) * 10) / 10; // 確保四捨五入到最近的0.1
+  return Math.round((amount + tip + Number.EPSILON) * 10) / 10; // 確保四捨五入到最近的0.1
 }
+
 
 
 function adjustAmount(totalAmount: number, items: PersonItem[]): void {
