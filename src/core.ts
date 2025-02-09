@@ -104,9 +104,17 @@ function calculatePersonAmount(input: {
   name: string
   persons: number
 }): number {
-  // for shared items, split the price evenly
-  // for personal items, do not split the price
-  // return the amount for the person
+  let amount = 0;
+
+  input.items.forEach(item => {
+    if (item.isShared) {
+      amount += item.price / input.persons;
+    } else if (item.person === input.name) {
+      amount += item.price;
+    }
+  });// for shared items, split the price evenly
+  const tip = (amount / input.persons) * (input.tipPercentage / 100); // for personal items, do not split the price
+  return parseFloat((amount + tip).toFixed(1)); // return the amount for the person
 }
 
 function adjustAmount(totalAmount: number, items: PersonItem[]): void {
