@@ -67,8 +67,8 @@ function calculateSubTotal(items: BillItem[]): number {
 }
 
 export function calculateTip(subTotal: number, tipPercentage: number): number {
-  const tip = (subTotal * (tipPercentage / 100));
-  return parseFloat(tip.toFixed(1)); // output round to closest 10 cents, e.g. 12.34 -> 12.3
+  const tip = subTotal * (tipPercentage / 100);
+  return Math.round(tip * 10) / 10; // output round to closest 10 cents, e.g. 12.34 -> 12.3
 }
 
 function scanPersons(items: BillItem[]): string[] {
@@ -112,18 +112,19 @@ function calculatePersonAmount(input: {
     } else if (item.person === input.name) {
       amount += item.price;
     }
-  });// for shared items, split the price evenly
-  const tip = (amount / input.persons) * (input.tipPercentage / 100); // for personal items, do not split the price
-  return parseFloat((amount + tip).toFixed(1)); // return the amount for the person
+  });
+  
+  const tip = amount * (input.tipPercentage / 100);
+  return Math.round((amount + tip) * 10) / 10; // 確保四捨五入到最近的0.1
 }
+
 
 function adjustAmount(totalAmount: number, items: PersonItem[]): void {
   const totalCalculated = items.reduce((sum, item) => sum + item.amount, 0);
-  const difference = (totalAmount - totalCalculated).toFixed(1);
+  const difference = totalAmount - totalCalculated;
 
-  if (difference !== '0.0') {
-    const adjustment = Math.sign(Number(difference)) * 0.1;
-    items[0].amount += adjustment; // Adjust the first person
+  if (difference !== 0) {
+    const adjustment = Math.sign(difference) * 0.1;
+    items[0].amount += adjustment; // // adjust the personal amount to match the total amount
   }
-// adjust the personal amount to match the total amount
 }
