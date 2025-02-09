@@ -115,7 +115,7 @@ function calculatePersonAmount(input: {
   });
 
   const tip = amount * (input.tipPercentage / 100);
-  return Math.round((amount + tip + Number.EPSILON) * 10) / 10; // 確保四捨五入到最近的0.1
+  return Math.round((amount + tip + Number.EPSILON) * 10) / 10; // for shared items, split the price evenly, for personal items, do not split the price, return the amount for the person
 }
 
 function adjustAmount(totalAmount: number, items: PersonItem[]): void {
@@ -127,7 +127,7 @@ function adjustAmount(totalAmount: number, items: PersonItem[]): void {
 
   if (difference !== 0) {
     const adjustment = Math.sign(difference) * 0.1;
-    items[0].amount = Math.round((items[0].amount + adjustment + Number.EPSILON) * 10) / 10; // 調整第一個人的金額
+    items[0].amount = Math.round((items[0].amount + adjustment + Number.EPSILON) * 10) / 10; // adjust the personal amount to match the total amount
   }
 }
 
