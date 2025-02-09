@@ -67,11 +67,20 @@ function calculateSubTotal(items: BillItem[]): number {
 }
 
 export function calculateTip(subTotal: number, tipPercentage: number): number {
-  // output round to closest 10 cents, e.g. 12.34 -> 12.3
+  const tip = (subTotal * (tipPercentage / 100));
+  return parseFloat(tip.toFixed(1)); // output round to closest 10 cents, e.g. 12.34 -> 12.3
 }
 
 function scanPersons(items: BillItem[]): string[] {
-  // scan the persons in the items
+  const persons = new Set<string>();
+  items.forEach(item => {
+    if (item.isShared) {
+      // Do nothing for shared items
+    } else {
+      persons.add(item.person);
+    }
+  });
+  return Array.from(persons); // scan the persons in the items
 }
 
 function calculateItems(
