@@ -83,21 +83,19 @@ function scanPersons(items: BillItem[]): string[] {
   return Array.from(persons); // scan the persons in the items
 }
 
-function calculateItems(
-  items: BillItem[],
-  tipPercentage: number,
-): PersonItem[] {
-  let names = scanPersons(items)
-  let persons = names.length
+function calculateItems(items: BillItem[], tipPercentage: number): PersonItem[] {
+  const names = scanPersons(items);
+  const personsCount = names.length;
+  
   return names.map(name => ({
     name,
     amount: calculatePersonAmount({
       items,
       tipPercentage,
       name,
-      persons,
+      persons: personsCount,
     }),
-  }))
+  }));
 }
 
 function calculatePersonAmount(input: {
