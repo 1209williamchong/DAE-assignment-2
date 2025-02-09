@@ -1,6 +1,6 @@
 # Assignment 1
 
-學生名稱：
+學生名稱：莊偉倫 William Chong
 
 ## 使用說明
 
