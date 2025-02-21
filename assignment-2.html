@@ -63,7 +63,7 @@
         const tip = calculateTip(subTotal, input.tipPercentage); // 根據小計計算小費
         const totalAmount = subTotal + tip; // 包含小費的總金額
 
-        const items = calculateItems(input.items, input.tipPercentage); // 計算每個人的應付金額
+        const items = calculateItems(input.items, input.tipPercentage, tip); // 計算每個人的應付金額
         adjustAmounts(totalAmount, items); // 調整金額以確保正確的總額
 
         return {
@@ -104,50 +104,37 @@
     }
 
     // 計算每個人的付款金額
-    function calculateItems(items, tipPercentage) {
+    function calculateItems(items, tipPercentage, totalTip) {
         const sharedItems = items.filter(item => item.isShared);
         const individualItems = items.filter(item => !item.isShared);
         
         const persons = scanPersons(individualItems); // 獲取唯一的支付人
         const sharedAmount = sharedItems.reduce((total, item) => total + item.price, 0);
-        const sharedAmountPerPerson = sharedAmount / (persons.length || 1); // 避免除以零
+        const sharedAmountPerPerson = persons.length > 0 ? sharedAmount / persons.length : 0; // 避免除以零
 
-        const results = persons.map(person => ({
-            name: person,
-            amount: calculatePersonAmount({
-                items,
-                tipPercentage,
+        const results = persons.map(person => {
+            const personalAmount = individualItems
+                .filter(item => item.person === person)
+                .reduce((sum, item) => sum + item.price, 0);
+                
+            const totalAmount = personalAmount + sharedAmountPerPerson; // 加上均分項目的金額
+            const individualTip = (totalAmount * tipPercentage) / 100 + (totalTip * (sharedAmount / calculateSubTotal(items))); // 計算個人小費
+
+            return {
                 name: person,
-                persons: persons.length,
-            }),
-        }));
+                amount: parseFloat((totalAmount + individualTip).toFixed(1))
+            };
+        });
 
         // 將均分金額添加到結果中
-        results.push({
-            name: '均分項目',
-            amount: sharedAmountPerPerson
-        });
+        if (sharedAmount > 0) {
+            results.push({
+                name: '均分項目',
+                amount: sharedAmountPerPerson + (totalTip / persons.length) // 均分小費
+            });
+        }
 
         return results;
-    }
-
-    // 計算每個人需要支付的金額
-    function calculatePersonAmount(input) {
-        let personalAmount = 0;
-        let sharedAmount = 0;
-
-        input.items.forEach(item => {
-            if (item.isShared) {
-                sharedAmount += item.price / input.persons; // 計算均分項目的金額
-            } else if (item.person === input.name) {
-                personalAmount += item.price; // 計算個人項目的金額
-            }
-        });
-
-        const totalAmount = personalAmount + sharedAmount;
-        const individualTip = (totalAmount * input.tipPercentage) / 100;
-
-        return parseFloat((totalAmount + individualTip).toFixed(1)); // 返回包含小費的總金額
     }
 
     // 調整金額以確保總金額與預期一致
@@ -184,7 +171,7 @@
                 </label>
                 
                 <label>是否均分:
-                    <input type="checkbox" class="is-shared" checked />
+                    <input type="checkbox" class="is-shared" />
                 </label>
                 
                 <label>付款人:
@@ -218,6 +205,7 @@
     // 函數用於顯示計算結果
     function displayResults(output) {
         const resultContainer = document.getElementById('result-container');
+
         resultContainer.innerHTML = `
             <h2>分帳結果</h2>
             <p>日期：${output.date}</p>
