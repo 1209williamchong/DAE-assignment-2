@@ -55,15 +55,16 @@
 <div id="result-container" style="display:none;"></div>
 
 <script>
+    // 主函數，用於根據輸入數據計算分帳
     function splitBill(input) {
-        const date = formatDate(input.date);
+        const date = formatDate(input.date); // 格式化日期以便顯示
         const location = input.location;
-        const subTotal = calculateSubTotal(input.items);
-        const tip = calculateTip(subTotal, input.tipPercentage);
-        const totalAmount = subTotal + tip;
+        const subTotal = calculateSubTotal(input.items); // 計算所有項目的小計
+        const tip = calculateTip(subTotal, input.tipPercentage); // 根據小計計算小費
+        const totalAmount = subTotal + tip; // 包含小費的總金額
 
-        const items = calculateItems(input.items, input.tipPercentage);
-        adjustAmounts(totalAmount, items);
+        const items = calculateItems(input.items, input.tipPercentage); // 計算每個人的應付金額
+        adjustAmounts(totalAmount, items); // 調整金額以確保正確的總額
 
         return {
             date,
@@ -75,19 +76,23 @@
         };
     }
 
+    // 將日期從 YYYY-MM-DD 格式轉換為更可讀的格式
     function formatDate(date) {
         const parts = date.split("-");
         return `${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日`;
     }
 
+    // 計算所有項目的小計
     function calculateSubTotal(items) {
         return items.reduce((total, item) => total + item.price, 0);
     }
 
+    // 根據小計和百分比計算小費
     function calculateTip(subTotal, tipPercentage) {
         return Math.round(subTotal * (tipPercentage / 100) * 10) / 10;
     }
 
+    // 收集支付非共享項目的唯一姓名
     function scanPersons(items) {
         const persons = new Set();
         items.forEach(item => {
@@ -98,11 +103,12 @@
         return Array.from(persons);
     }
 
+    // 計算每個人的付款金額
     function calculateItems(items, tipPercentage) {
         const sharedItems = items.filter(item => item.isShared);
         const individualItems = items.filter(item => !item.isShared);
         
-        const persons = scanPersons(individualItems);
+        const persons = scanPersons(individualItems); // 獲取唯一的支付人
         const sharedAmount = sharedItems.reduce((total, item) => total + item.price, 0);
         const sharedAmountPerPerson = sharedAmount / (persons.length || 1); // 避免除以零
 
@@ -125,31 +131,33 @@
         return results;
     }
 
+    // 計算每個人需要支付的金額
     function calculatePersonAmount(input) {
         let personalAmount = 0;
         let sharedAmount = 0;
 
         input.items.forEach(item => {
             if (item.isShared) {
-                sharedAmount += item.price / input.persons; // 均分金額
+                sharedAmount += item.price / input.persons; // 計算均分項目的金額
             } else if (item.person === input.name) {
-                personalAmount += item.price; // 個人項目
+                personalAmount += item.price; // 計算個人項目的金額
             }
         });
 
         const totalAmount = personalAmount + sharedAmount;
         const individualTip = (totalAmount * input.tipPercentage) / 100;
 
-        return parseFloat((totalAmount + individualTip).toFixed(1));
+        return parseFloat((totalAmount + individualTip).toFixed(1)); // 返回包含小費的總金額
     }
 
+    // 調整金額以確保總金額與預期一致
     function adjustAmounts(totalAmount, items) {
         const currentTotal = items.reduce((sum, item) => sum + item.amount, 0);
         const difference = totalAmount - currentTotal;
 
-        if (Math.abs(difference) < 0.01) return;
+        if (Math.abs(difference) < 0.01) return; // 如果差異很小，則不需要調整
 
-        const adjustmentPerPerson = difference / items.length;
+        const adjustmentPerPerson = difference / items.length; // 計算每人的調整金額
 
         items.forEach(item => {
             item.amount = parseFloat((item.amount + adjustmentPerPerson).toFixed(1));
@@ -159,22 +167,26 @@
         const finalDifference = totalAmount - finalTotal;
 
         if (finalDifference !== 0) {
-            items[0].amount = parseFloat((items[0].amount + finalDifference).toFixed(1));
+            items[0].amount = parseFloat((items[0].amount + finalDifference).toFixed(1)); // 調整第一項以平衡
         }
     }
 
+    // 事件監聽器，用於新增餐點項目
     document.getElementById('add-item').addEventListener('click', () => {
         const itemHTML = `
             <div class="input-group">
                 <label>餐點名稱:
                     <input type="text" class="item-name" required />
                 </label>
+                
                 <label>價格（元）:
                     <input type="number" class="item-price" min="0" step="0.1" required />
                 </label>
+                
                 <label>是否均分:
                     <input type="checkbox" class="is-shared" checked />
                 </label>
+                
                 <label>付款人:
                     <input type="text" class="payer" placeholder="付款人名稱（僅對不均分項目有效）" />
                 </label>
@@ -182,6 +194,7 @@
         document.getElementById('items-container').insertAdjacentHTML('beforeend', itemHTML);
     });
 
+    // 事件監聽器，用於提交表單計算分帳
     document.getElementById('bill-form').addEventListener('submit', (event) => {
         event.preventDefault();
 
@@ -198,10 +211,11 @@
         });
 
         const billInput = { date, location, tipPercentage, items };
-        const billOutput = splitBill(billInput);
-        displayResults(billOutput);
+        const billOutput = splitBill(billInput); // 調用 splitBill 函數獲取結果
+        displayResults(billOutput); // 顯示結果
     });
 
+    // 函數用於顯示計算結果
     function displayResults(output) {
         const resultContainer = document.getElementById('result-container');
         resultContainer.innerHTML = `
@@ -214,7 +228,7 @@
             <h3>每人最終需支付金額</h3>
             <ul>${output.items.map(item => `<li>${item.name}: <span class="currency">$${item.amount.toFixed(1)}</span></li>`).join('')}</ul>
         `;
-        resultContainer.style.display = 'block';
+        resultContainer.style.display = 'block'; // 顯示結果區域
     }
 </script>
 </body>
