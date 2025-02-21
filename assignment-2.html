@@ -62,7 +62,7 @@
         const tip = calculateTip(subTotal, input.tipPercentage);
         const totalAmount = subTotal + tip;
 
-        let items = calculateItems(input.items, input.tipPercentage);
+        const items = calculateItems(input.items, input.tipPercentage);
         adjustAmounts(totalAmount, items);
 
         return {
@@ -99,13 +99,30 @@
     }
 
     function calculateItems(items, tipPercentage) {
-        const names = scanPersons(items);
-        const persons = names.length;
+        const sharedItems = items.filter(item => item.isShared);
+        const individualItems = items.filter(item => !item.isShared);
+        
+        const persons = scanPersons(individualItems);
+        const sharedAmount = sharedItems.reduce((total, item) => total + item.price, 0);
+        const sharedAmountPerPerson = sharedAmount / (persons.length || 1); // 避免除以零
 
-        return names.map(name => ({
-            name,
-            amount: calculatePersonAmount({ items, tipPercentage, name, persons }),
+        const results = persons.map(person => ({
+            name: person,
+            amount: calculatePersonAmount({
+                items,
+                tipPercentage,
+                name: person,
+                persons: persons.length,
+            }),
         }));
+
+        // 將均分金額添加到結果中
+        results.push({
+            name: '均分項目',
+            amount: sharedAmountPerPerson
+        });
+
+        return results;
     }
 
     function calculatePersonAmount(input) {
@@ -114,9 +131,9 @@
 
         input.items.forEach(item => {
             if (item.isShared) {
-                sharedAmount += item.price / input.persons;
+                sharedAmount += item.price / input.persons; // 均分金額
             } else if (item.person === input.name) {
-                personalAmount += item.price;
+                personalAmount += item.price; // 個人項目
             }
         });
 
